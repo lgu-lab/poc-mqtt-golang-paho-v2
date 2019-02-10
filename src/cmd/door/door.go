@@ -12,10 +12,12 @@ import (
 
 const clientId  string = "door-client"
 const topicSUB  string = "devfest/bdm/door/command"
+const OPEN      string = "O"
+const CLOSED    string = "C"
 
-var doorStatus string = "O"
+var doorState string = OPEN // Initial state is 'OPEN'
 
-func subscribeAndWait( client mqtt.Client) {
+func subscribe(client mqtt.Client) {
 	fmt.Println("Subscribe on topic '" + topicSUB +")..." )
 	
 //    if token := client.Subscribe(topic, 0, func(client mqtt.Client, msg mqtt.Message) {
@@ -55,24 +57,42 @@ func onMessage(client mqtt.Client, msg mqtt.Message) {
 func processCommand(command string) {
 	if strings.HasPrefix(command, "O") || strings.HasPrefix(command, "o") {
 		open()
-	}
-	if strings.HasPrefix(command, "C") || strings.HasPrefix(command, "c") {
+	} else if strings.HasPrefix(command, "C") || strings.HasPrefix(command, "c") {
 		close()
+	} else {
+		fmt.Println("Invalid command.")
 	}
 }
 func open() {
-	fmt.Println("Opening the door...")
-	doorStatus = "O"
-	fmt.Println("Door is OPEN")
-	fmt.Println("")
+	if doorState != OPEN {
+		fmt.Println("Opening the door...")
+		doorState = OPEN
+		printDoorState()
+		publishDoorState(doorState)
+	} else {
+		fmt.Println("Door is already open.")
+	}
 }
 func close() {
-	fmt.Println("Closing the door...")
-	doorStatus = "C"
-	fmt.Println("Door is CLOSED")
-	fmt.Println("")
+	if doorState != CLOSED {
+		fmt.Println("Closing the door...")
+		doorState = CLOSED
+		printDoorState()
+		publishDoorState(doorState)
+	} else {
+		fmt.Println("Door is already closed.")
+	}
 }
-
+func printDoorState() {
+	state := "OPEN" 
+	if doorState != OPEN {
+		state = "CLOSED"
+	}
+	fmt.Println("Door state is '" + state + "'")
+}
+func publishDoorState(state string) {
+	fmt.Println("Publishing new door state : " + state )
+}
 func main() {
 	fmt.Println("Starting..." )
 
@@ -81,9 +101,10 @@ func main() {
 	var wg sync.WaitGroup
     wg.Add(1) // wait group for 2 go routines
 	
-	subscribeAndWait(client)
-
-	//fmt.Println("after subscribeAndWait()" )
-	fmt.Println("Waiting..." )
+	subscribe(client)
+	
+	printDoorState()
+	
+	fmt.Println("Waiting for commands..." )
 	wg.Wait()
 }
