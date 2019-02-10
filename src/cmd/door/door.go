@@ -11,9 +11,12 @@ import (
 )
 
 const clientId  string = "door-client"
-const topicSUB  string = "devfest/bdm/door/command"
+const topicSUB  string = "devfest/bdm/door/command" // Commands received
+const topicPUB  string = "devfest/bdm/door/state"   // New state send
 const OPEN      string = "O"
 const CLOSED    string = "C"
+
+var   client    mqtt.Client
 
 var doorState string = OPEN // Initial state is 'OPEN'
 
@@ -90,13 +93,15 @@ func printDoorState() {
 	}
 	fmt.Println("Door state is '" + state + "'")
 }
-func publishDoorState(state string) {
-	fmt.Println("Publishing new door state : " + state )
+func publishDoorState(doorState string) {
+	fmt.Println("Publishing new door state : " + doorState )
+	// Publish(topic string, qos byte, retained bool, payload interface{}) Token
+	client.Publish(topicPUB, 0, false, doorState)	
 }
 func main() {
 	fmt.Println("Starting..." )
 
-	client := commons.Connect(clientId)
+	client = commons.Connect(clientId)
 
 	var wg sync.WaitGroup
     wg.Add(1) // wait group for 2 go routines
