@@ -8,7 +8,8 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
 
-const brokerURI  string = "tcp://test.mosquitto.org:1883"
+// const brokerURI  string = "tcp://test.mosquitto.org:1883"  // Network error : %!s(<nil>)
+const brokerURI  string = "tcp://iot.eclipse.org:1883" // OK 
 
 func createClientOptions(brokerURI string, clientId string) *mqtt.ClientOptions {
 	opts := mqtt.NewClientOptions()
